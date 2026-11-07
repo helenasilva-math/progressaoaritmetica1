@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A Jornada da Progressão Aritmética</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            min-height: 100vh;
+            color: #f8fafc;
+        }
+        .font-game {
+            font-family: 'Fredoka', cursive;
+        }
+        /* Custom Animations */
+        @keyframes bounce-subtle {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+        .animate-bounce-subtle {
+            animation: bounce-subtle 2s infinite ease-in-out;
+        }
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 15px rgba(99, 102, 241, 0.4); }
+            50% { box-shadow: 0 0 30px rgba(99, 102, 241, 0.8); }
+        }
+        .glow-effect {
+            animation: pulse-glow 3s infinite;
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen justify-between p-2 sm:p-4">
+
+    <!-- Top Header / Bar -->
+    <header class="max-w-4xl w-full mx-auto bg-slate-800/80 backdrop-blur border border-slate-700 rounded-2xl p-4 mb-4 flex justify-between items-center shadow-lg">
+        <div class="flex items-center space-x-3">
+            <div class="bg-indigo-600 p-2 sm:p-3 rounded-xl text-white shadow-md">
+                <i class="fa-solid fa-ruler-combined text-xl sm:text-2xl"></i>
+            </div>
+            <div>
+                <h1 class="font-game text-lg sm:text-2xl font-bold text-amber-400 leading-tight">Mestre da P.A.</h1>
+                <p class="text-xs sm:text-sm text-slate-400">Descubra os segredos dos padrões matemáticos!</p>
+            </div>
+        </div>
+        
+        <div class="flex items-center space-x-2 sm:space-x-4">
+            <div class="bg-slate-900/60 border border-slate-700 px-3 py-1.5 rounded-lg text-right">
+                <span class="block text-[10px] uppercase tracking-wider text-slate-400 font-bold">Nível Atual</span>
+                <span id="level-indicator" class="font-game text-sm sm:text-base text-indigo-400 font-bold">Fase 1: Intuição</span>
+            </div>
+            <button onclick="resetGame()" class="bg-slate-700 hover:bg-slate-600 text-slate-200 p-2 rounded-xl text-sm transition" title="Reiniciar Jogo">
+                <i class="fa-solid fa-rotate-right"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Game Container -->
+    <main class="max-w-4xl w-full mx-auto flex-grow flex flex-col justify-center items-center">
+        
+        <!-- Canvas/Visual Display Box -->
+        <div class="w-full bg-slate-900/90 border border-slate-700/80 rounded-3xl p-4 sm:p-6 shadow-2xl relative overflow-hidden mb-4">
+            <!-- Story / Context Box -->
+            <div id="story-box" class="bg-indigo-950/80 border border-indigo-500/30 rounded-2xl p-4 mb-6 relative">
+                <div class="flex items-start gap-3">
+                    <div class="bg-amber-500 text-slate-900 font-bold p-2 rounded-lg text-xs mt-0.5">
+                        <i class="fa-solid fa-comment-dots"></i> GUIA
+                    </div>
+                    <p id="story-text" class="text-sm sm:text-base text-indigo-100 leading-relaxed">
+                        Bem-vindo, Construtor! Para ajudar o robô a atravessar os abismos, precisamos construir pilares com alturas em padrão regular. Observe a altura dos primeiros pilares!
+                    </p>
+                </div>
+            </div>
+
+            <!-- Visual Game Area: Pillars -->
+        <div class="w-full min-h-[380px] bg-slate-950/70 border border-slate-800 rounded-2xl p-4 flex items-end justify-around relative overflow-x-auto" id="pillars-container">
+            <!-- Pillars dynamically generated here -->
+        </div>
+
+        <!-- Mathematical Formula Box (Dynamically Unlocked) -->
+            <div id="formula-card" class="hidden mt-4 bg-slate-800/90 border border-amber-500/40 rounded-2xl p-4 text-center transition-all">
+                <h3 class="font-game text-amber-400 font-bold text-sm sm:text-base mb-1 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-lightbulb"></i> <span id="formula-title">Fórmula Desbloqueada!</span>
+                </h3>
+                <div id="formula-content" class="text-xs sm:text-sm text-slate-300">
+                    <!-- Dynamic Formula Content -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Interactive Control / Quiz Panel -->
+        <div class="w-full bg-slate-800/80 border border-slate-700 rounded-3xl p-4 sm:p-6 shadow-xl">
+            <!-- Question Header -->
+            <div class="mb-4 text-center flex flex-col items-center">
+                <h2 id="question-text" class="font-game text-base sm:text-xl text-white">
+                    Qual deve ser a altura do próximo pilar?
+                </h2>
+                <!-- Optional Hint Button & Container -->
+                <div id="hint-container" class="hidden mt-2">
+                    <button id="btn-show-hint" onclick="toggleHint()" 
+                            class="bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 font-game text-xs px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 mx-auto">
+                        <i class="fa-solid fa-lightbulb"></i> <span>Ver Dica</span>
+                    </button>
+                    <div id="hint-text" class="hidden mt-2 text-xs text-amber-300 font-normal bg-amber-950/60 border border-amber-500/30 p-2.5 rounded-xl max-w-md mx-auto">
+                        <!-- Hint Content -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Options / Input Container -->
+            <div id="interaction-area" class="w-full flex flex-col items-center gap-4">
+                <!-- Multiple Choice Buttons (Default for early levels) -->
+                <div id="options-grid" class="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full">
+                    <!-- Dynamic Buttons -->
+                </div>
+
+                <!-- Input Box (For intermediate steps) -->
+                <div id="input-container" class="hidden flex flex-col sm:flex-row items-center gap-3 w-full max-w-md">
+                    <input type="number" id="user-input" placeholder="Digite o número..." 
+                           class="w-full bg-slate-900 border-2 border-indigo-500 text-white font-game text-center text-xl rounded-xl px-4 py-3 focus:outline-none focus:border-amber-400">
+                    <button id="btn-submit-input" onclick="checkInputAnswer()" 
+                            class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-500 text-white font-game font-bold px-6 py-3 rounded-xl transition shadow-lg flex items-center justify-center gap-2">
+                        <span>Confirmar</span> <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Feedback Message -->
+            <div id="feedback-msg" class="hidden mt-4 p-3 rounded-xl text-center text-sm font-semibold">
+                <!-- Dynamic feedback text -->
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="max-w-4xl w-full mx-auto text-center text-slate-500 text-xs py-3 mt-4">
+        Aprenda Matemática de Forma Intuitiva • Progressão Aritmética (P.A.)
+    </footer>
+
+    <!-- JavaScript Game Logic -->
+    <script>
+        // State Management
+        let currentStep = 0;
+        let userSelectedAnswer = null;
+
+        // Stages Data Architecture
+        const gameStages = [
+            // Stage 0: Pure intuition - Simple Sequence (+2)
+            {
+                levelTitle: "Fase 1: O Padrão Oculto",
+                story: "Observe os pilares! Cada pilar cresce empilhando tijolos no mesmo ritmo. Quantos tijolos deve ter o 4º pilar?",
+                question: "Qual é a altura (número de tijolos) do 4º pilar?",
+                sequence: [2, 4, 6],
+                targetIndex: 3, // 0-indexed, searching for 4th pillar
+                correctValue: 8,
+                options: [7, 8, 9, 10],
+                type: "options",
+                reasoning: "Reparou que estamos SEMPRE somando 2 tijolos a mais? Esse valor fixo adicionado a cada passo é chamado de RAZÃO (r)!",
+                formula: null
+            },
+            // Stage 1: Intuition - Negative or higher difference (+5)
+            {
+                levelTitle: "Fase 1: Encontrando a Razão",
+                story: "Ótimo trabalho! Vamos tentar outra ponte. Descubra quantos tijolos são adicionados a cada pilar para achar a altura do pilar que falta.",
+                question: "Qual é o valor da altura do 5º pilar?",
+                sequence: [5, 10, 15, 20],
+                targetIndex: 4,
+                correctValue: 25,
+                options: [22, 24, 25, 30],
+                type: "options",
+                reasoning: "Excelente! A razão nesta ponte é r = 5. Em matemática, essa sequência com aumentos iguais é chamada de Progressão Aritmética (P.A.).",
+                formula: {
+                    title: "O que é uma P.A. e a Razão (r)?",
+                    html: "Uma Progressão Aritmética (P.A.) é uma sequência em que a diferença entre termos consecutivos é constante. Essa diferença é chamada de Razão (r).<br><span class=\"text-amber-300\">Nesta fase: r = 5</span>"
+                }
+            },
+            // Stage 2: Introducing Notations (a1, a2, a3... n)
+            {
+                levelTitle: "Fase 2: A Notação A1, A2... An",
+                story: "Para conversar como um matemático, damos nomes aos pilares: o 1º pilar é a₁, o 2º é a₂, o 3º é a₃ e o termo qualquer da posição n é chamado de aₙ.",
+                question: "Se a₁ = 3 e a razão r = 4, qual é o valor de a₄ (4º pilar)?",
+                sequence: [3, 7, 11],
+                targetIndex: 3,
+                correctValue: 15,
+                options: [13, 14, 15, 16],
+                type: "options",
+                reasoning: "Perfeito! Você começou no a₁ (3) e somou a razão (4) exatamente 3 vezes! Ou seja: 3 + 3×4 = 15.",
+                formula: {
+                    title: "Entendendo os Nomes dos Termos",
+                    html: "a₁ = Primeiro termo &nbsp;|&nbsp; aₙ = Termo da posição 'n' &nbsp;|&nbsp; n = Número da posição &nbsp;|&nbsp; r = Razão"
+                }
+            },
+            // Stage 3: Deducing the General Term Formula
+            {
+                levelTitle: "Fase 2: A Fórmula do Termo Geral",
+                story: "Imagine que o robô precisa do 100º pilar (a₁₀₀)! Desenhar cem pilares demoraria muito. Vamos achar um atalho?",
+                question: "Para ir do 1º pilar (a₁) até o 10º pilar (a₁₀), quantas vezes você precisa somar a razão (r)?",
+                sequence: [10, 20, 30],
+                targetIndex: 3,
+                correctValue: 9,
+                options: [10, 9, 8, 11],
+                type: "options",
+                reasoning: "Exato! Para chegar na posição 10, você dá 9 passos (10 - 1). Por isso, somamos a razão (n - 1) vezes!",
+                formula: {
+                    title: "Fórmula do Termo Geral da P.A.",
+                    html: "<div class='text-lg font-bold text-amber-400 py-1'>aₙ = a₁ + (n - 1) · r</div><p class='text-xs text-slate-300'>Para achar qualquer termo (aₙ), pegue o primeiro (a₁) e adicione a razão (r) multiplicada por (n - 1) passos!</p>"
+                }
+            },
+            // Stage 4: Applying General Term Formula with Input
+            {
+                levelTitle: "Fase 2: Aplicando a Fórmula",
+                story: "Agora use a fórmula mágica! Temos uma P.A. com a₁ = 4 e r = 3. Qual é a altura do pilar na posição n = 20 (a₂₀)?",
+                question: "Calcule a₂₀ usando: a₂₀ = 4 + (20 - 1) × 3",
+                sequence: [4, 7, 10],
+                targetIndex: null, // Display high n representation
+                customDisplayIndex: 20,
+                correctValue: 61,
+                type: "input",
+                reasoning: "Incrível! a₂₀ = 4 + 19 × 3 = 4 + 57 = 61! Você calculou a altura do 20º pilar sem precisar desenhar nada!",
+                formula: {
+                    title: "Fórmula do Termo Geral em Ação",
+                    html: "a₂₀ = 4 + (20 - 1) · 3 = 4 + 57 = 61"
+                }
+            },
+            // Stage 5: Introducing Sum of n terms (Gauss method)
+            {
+                levelTitle: "Fase 3: A Soma dos Termos (Sₙ)",
+                story: "Novo desafio! Precisamos calcular o total de tijolos para construir TODOS os pilares do 1º ao 4º.<br>Olha o truque de Gauss: Some o 1º com o último pilar (a₁ + a₄). Quanto dá 2 + 8?",
+                question: "Qual a soma de a₁ (2) + a₄ (8)?",
+                sequence: [2, 4, 6, 8],
+                targetIndex: null,
+                highlightPairs: true,
+                correctValue: 10,
+                options: [8, 10, 12, 14],
+                type: "options",
+                reasoning: "Notou algo mágico? (a₁ + a₄) = 2 + 8 = 10. E os termos do meio (a₂ + a₃) = 4 + 6 = 10! As somas dos pares opostos são iguais!",
+                formula: {
+                    title: "A Descoberta de Gauss",
+                    html: "Ao somar pares das pontas para o meio, o resultado é sempre o mesmo! Formamos (n / 2) pares."
+                }
+            },
+            // Stage 6: The Sum Formula
+            {
+                levelTitle: "Fase 3: A Fórmula da Soma (Sₙ)",
+                story: "Como temos 4 termos, formamos 2 pares de soma 10. Total = 2 × 10 = 20 tijolos! Assim nasce a Fórmula da Soma da P.A.!",
+                question: "Calcule a soma dos 6 primeiros termos de uma P.A. onde a₁ = 5 e a₆ = 30.",
+                sequence: [5, 10, 15, 20, 25, 30],
+                targetIndex: null,
+                correctValue: 105,
+                type: "input",
+                hintFormula: "Dica: S₆ = (a₁ + a₆) × 6 / 2  =>  (5 + 30) × 3",
+                reasoning: "Sensacional! (5 + 30) × 6 / 2 = 35 × 3 = 105!",
+                formula: {
+                    title: "Fórmula da Soma dos n Termos da P.A.",
+                    html: "<div class='text-lg font-bold text-amber-400 py-1'>Sₙ = (a₁ + aₙ) · n / 2</div><p class='text-xs text-slate-300'>Multiplicamos a soma dos extremos (a₁ + aₙ) pela metade da quantidade de termos (n / 2).</p>"
+                }
+            },
+            // Stage 7: Master Quiz / Certificate
+            {
+                levelTitle: "Fase Final: Mestre da Progressão Aritmética",
+                story: "Parabéns! Você dominou a intuição, o termo geral e a soma da P.A. Vamos ao último desafio para se tornar um Mestre!",
+                question: "Em uma P.A. onde a₁ = 10 e a razão r = 5, qual a soma dos 10 primeiros termos (S₁₀)?",
+                sequence: [10, 15, 20],
+                targetIndex: null,
+                correctValue: 325,
+                type: "input",
+                hintFormula: "Dica: Primeiro ache a₁₀ = 10 + 9×5 = 55. Depois use S₁₀ = (10 + 55)×10 / 2",
+                reasoning: "VOCÊ CONSEGUIU! a₁₀ = 55. S₁₀ = (10 + 55) × 5 = 65 × 5 = 325. Você é oficialmente um Mestre da P.A.!",
+                formula: {
+                    title: "Resumo do Seu Aprendizado",
+                    html: "1. Razão (r): Diferença constante.<br>2. Termo Geral: aₙ = a₁ + (n - 1)·r<br>3. Soma: Sₙ = (a₁ + aₙ)·n / 2"
+                }
+            }
+        ];
+
+        // Render Current Stage
+        function renderStage() {
+            const stage = gameStages[currentStep];
+
+            // Update Headers & Text
+            document.getElementById('level-indicator').innerText = stage.levelTitle;
+            document.getElementById('story-text').innerHTML = stage.story;
+            document.getElementById('question-text').innerHTML = stage.question;
+
+            // Reset Hint Button & Visibility
+            const hintContainer = document.getElementById('hint-container');
+            const hintTextEl = document.getElementById('hint-text');
+            const hintBtn = document.getElementById('btn-show-hint');
+            
+            if (stage.hintFormula) {
+                hintContainer.classList.remove('hidden');
+                hintTextEl.classList.add('hidden');
+                hintTextEl.innerHTML = stage.hintFormula;
+                hintBtn.innerHTML = `<i class="fa-solid fa-lightbulb"></i> <span>Ver Dica</span>`;
+            } else {
+                hintContainer.classList.add('hidden');
+            }
+
+            // Hide Feedback
+            const feedbackEl = document.getElementById('feedback-msg');
+            feedbackEl.classList.add('hidden');
+
+            // Render Pillars Visualization
+            renderPillars(stage);
+
+            // Render Formula Card if available
+            const formulaCard = document.getElementById('formula-card');
+            if (stage.formula) {
+                formulaCard.classList.remove('hidden');
+                document.getElementById('formula-title').innerText = stage.formula.title;
+                document.getElementById('formula-content').innerHTML = stage.formula.html;
+            } else {
+                formulaCard.classList.add('hidden');
+            }
+
+            // Render Interaction Controls (Options vs Input)
+            const optionsGrid = document.getElementById('options-grid');
+            const inputContainer = document.getElementById('input-container');
+
+            if (stage.type === 'options') {
+                optionsGrid.classList.remove('hidden');
+                inputContainer.classList.add('hidden');
+                optionsGrid.innerHTML = '';
+
+                stage.options.forEach(opt => {
+                    const btn = document.createElement('button');
+                    btn.className = `bg-slate-700 hover:bg-indigo-600 border border-slate-600 text-white font-game text-xl py-3 px-4 rounded-xl transition duration-200 transform hover:-translate-y-0.5 shadow-md`;
+                    btn.innerText = opt;
+                    btn.onclick = () => checkOptionAnswer(opt);
+                    optionsGrid.appendChild(btn);
+                });
+            } else if (stage.type === 'input') {
+                optionsGrid.classList.add('hidden');
+                inputContainer.classList.remove('hidden');
+                const inputEl = document.getElementById('user-input');
+                inputEl.value = '';
+                inputEl.focus();
+            }
+        }
+
+        // Toggle Hint Visibility
+        function toggleHint() {
+            const hintTextEl = document.getElementById('hint-text');
+            const hintBtn = document.getElementById('btn-show-hint');
+            
+            if (hintTextEl.classList.contains('hidden')) {
+                hintTextEl.classList.remove('hidden');
+                hintBtn.innerHTML = `<i class="fa-solid fa-eye-slash"></i> <span>Esconder Dica</span>`;
+            } else {
+                hintTextEl.classList.add('hidden');
+                hintBtn.innerHTML = `<i class="fa-solid fa-lightbulb"></i> <span>Ver Dica</span>`;
+            }
+        }
+
+        // Render Dynamic Canvas Pillars
+        function renderPillars(stage) {
+            const container = document.getElementById('pillars-container');
+            container.innerHTML = '';
+
+            const seq = [...stage.sequence];
+
+            // Find maximum value to scale heights proportionally across all pillars in stage
+            let maxVal = Math.max(...seq, stage.correctValue || 0);
+            
+            // Helper to build brick stack elements with dynamic sizing and scaled brick counts
+            function createBrickStack(count, isDashed = false, isHighlighted = false) {
+                // Calculate height percentage proportional to max value in sequence
+                const heightPct = Math.min(Math.max((count / maxVal) * 100, 15), 100);
+                
+                const stack = document.createElement('div');
+                stack.style.height = `${heightPct}%`;
+                stack.className = `w-full flex flex-col-reverse items-center justify-start p-1 rounded-t-xl transition-all duration-300 ${
+                    isDashed 
+                        ? 'border-2 border-dashed border-amber-400/80 bg-amber-500/10' 
+                        : isHighlighted 
+                            ? 'bg-amber-950/40 border border-amber-500/40' 
+                            : 'bg-indigo-950/30 border border-indigo-500/20'
+                }`;
+
+                // Determine display bricks count and size based on count
+                let displayBricks = count;
+                let showEllipsis = false;
+
+                if (count > 12) {
+                    displayBricks = 8;
+                    showEllipsis = true;
+                }
+
+                // Dynamic height and gap for bricks based on count to ensure perfect fitting
+                let brickHeightClass = 'h-5 sm:h-6';
+                let gapClass = 'gap-1';
+                
+                if (displayBricks > 8) {
+                    brickHeightClass = 'h-3 sm:h-4';
+                    gapClass = 'gap-0.5';
+                } else if (displayBricks > 5) {
+                    brickHeightClass = 'h-4 sm:h-5';
+                    gapClass = 'gap-1';
+                }
+
+                stack.classList.add(...gapClass.split(' '));
+
+                for (let i = 0; i < displayBricks; i++) {
+                    const brick = document.createElement('div');
+                    if (isDashed) {
+                        brick.className = `w-full ${brickHeightClass} bg-amber-500/20 border border-amber-400/50 rounded flex items-center justify-center text-[10px] text-amber-300 font-bold`;
+                        brick.innerHTML = (i === displayBricks - 1 && !showEllipsis) ? '?' : '';
+                    } else {
+                        const bgGradient = isHighlighted 
+                            ? 'bg-gradient-to-r from-amber-500 to-amber-400 border-amber-300' 
+                            : 'bg-gradient-to-r from-indigo-500 to-indigo-400 border-indigo-300';
+                        brick.className = `w-full ${brickHeightClass} ${bgGradient} border rounded-sm shadow-sm flex items-center justify-center text-[9px] text-slate-900 font-extrabold`;
+                    }
+                    stack.appendChild(brick);
+                }
+
+                if (showEllipsis) {
+                    const indicator = document.createElement('div');
+                    indicator.className = 'text-[10px] text-amber-400 font-bold my-0.5 leading-none';
+                    indicator.innerText = '•••';
+                    stack.appendChild(indicator);
+                }
+
+                return stack;
+            }
+
+            // Render existing sequence pillars
+            seq.forEach((val, idx) => {
+                const isHighlighted = stage.highlightPairs && (idx === 0 || idx === seq.length - 1);
+                
+                const pillar = document.createElement('div');
+                pillar.className = 'flex flex-col items-center justify-end flex-1 max-w-[75px] h-full mx-1 group';
+                
+                const brickStack = createBrickStack(val, false, isHighlighted);
+
+                pillar.innerHTML = `
+                    <span class="text-xs sm:text-sm font-bold ${isHighlighted ? 'text-amber-400 font-extrabold text-base' : 'text-indigo-300'} mb-1.5 font-game bg-slate-900/80 px-2 py-0.5 rounded-md border border-slate-700 text-center">${val} ${val === 1 ? 'tijolo' : 'tijolos'}</span>
+                `;
+                pillar.appendChild(brickStack);
+                pillar.innerHTML += `
+                    <span class="text-xs text-slate-400 mt-2 font-mono font-semibold">a<sub>${idx + 1}</sub></span>
+                `;
+                container.appendChild(pillar);
+            });
+
+            // Target missing pillar (if applicable)
+            if (stage.targetIndex !== null && stage.targetIndex !== undefined) {
+                const targetIdx = stage.targetIndex;
+                
+                const pillarTarget = document.createElement('div');
+                pillarTarget.className = 'flex flex-col items-center justify-end flex-1 max-w-[75px] h-full mx-1';
+                
+                const brickStack = createBrickStack(stage.correctValue, true, false);
+
+                pillarTarget.innerHTML = `
+                    <span class="text-xs font-bold text-amber-400 mb-1.5 font-game bg-amber-950/80 px-2 py-0.5 rounded-md border border-amber-500/50 animate-bounce">?</span>
+                `;
+                pillarTarget.appendChild(brickStack);
+                pillarTarget.innerHTML += `
+                    <span class="text-xs text-amber-400 mt-2 font-mono font-semibold">a<sub>${targetIdx + 1}</sub></span>
+                `;
+                container.appendChild(pillarTarget);
+            }
+
+            // Custom distant pillar representation (e.g., n=20)
+            if (stage.customDisplayIndex) {
+                const dots = document.createElement('div');
+                dots.className = 'flex items-center justify-center text-slate-500 font-bold px-1 text-xl mb-6';
+                dots.innerHTML = '•••';
+                container.appendChild(dots);
+
+                const distantPillar = document.createElement('div');
+                distantPillar.className = 'flex flex-col items-center justify-end flex-1 max-w-[75px] h-full mx-1';
+                
+                const brickStack = createBrickStack(stage.correctValue, true, false);
+
+                distantPillar.innerHTML = `
+                    <span class="text-xs font-bold text-amber-400 mb-1.5 font-game bg-amber-950/80 px-2 py-0.5 rounded-md border border-amber-500/50 animate-bounce">?</span>
+                `;
+                distantPillar.appendChild(brickStack);
+                distantPillar.innerHTML += `
+                    <span class="text-xs text-amber-400 mt-2 font-mono font-semibold">a<sub>${stage.customDisplayIndex}</sub></span>
+                `;
+                container.appendChild(distantPillar);
+            }
+        }
+
+        // Validate Answer for Option Buttons
+        function checkOptionAnswer(selectedValue) {
+            const stage = gameStages[currentStep];
+            if (selectedValue === stage.correctValue) {
+                showFeedback(true, stage.reasoning);
+            } else {
+                showFeedback(false, "Quase lá! Observe a diferença entre os pilares vizinhos e tente novamente.");
+            }
+        }
+
+        // Validate Answer for Input Field
+        function checkInputAnswer() {
+            const inputEl = document.getElementById('user-input');
+            const val = parseInt(inputEl.value);
+            const stage = gameStages[currentStep];
+
+            if (val === stage.correctValue) {
+                showFeedback(true, stage.reasoning);
+            } else {
+                showFeedback(false, "Responda novamente! Verifique suas contas atentamente.");
+            }
+        }
+
+        // Handle Enter key for input
+        document.getElementById('user-input').addEventListener('keyup', function(event) {
+            if (event.key === 'Enter') {
+                checkInputAnswer();
+            }
+        });
+
+        // Display Feedback Banner and Advance Button
+        function showFeedback(isSuccess, message) {
+            const feedbackEl = document.getElementById('feedback-msg');
+            feedbackEl.classList.remove('hidden', 'bg-emerald-950/90', 'border-emerald-500', 'text-emerald-200', 'bg-rose-950/90', 'border-rose-500', 'text-rose-200');
+
+            if (isSuccess) {
+                feedbackEl.classList.add('bg-emerald-950/90', 'border', 'border-emerald-500/50', 'text-emerald-200');
+                feedbackEl.innerHTML = `
+                    <div class="flex flex-col sm:flex-row items-center justify-between gap-3">
+                        <div class="flex items-center gap-2 text-left">
+                            <i class="fa-solid fa-circle-check text-emerald-400 text-xl flex-shrink-0"></i>
+                            <span>${message}</span>
+                        </div>
+                        <button onclick="nextStage()" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-game font-bold px-5 py-2 rounded-xl transition flex-shrink-0 shadow-lg">
+                            Próxima Fase <i class="fa-solid fa-forward ml-1"></i>
+                        </button>
+                    </div>
+                `;
+            } else {
+                feedbackEl.classList.add('bg-rose-950/90', 'border', 'border-rose-500/50', 'text-rose-200');
+                feedbackEl.innerHTML = `
+                    <div class="flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-circle-xmark text-rose-400 text-xl"></i>
+                        <span>${message}</span>
+                    </div>
+                `;
+            }
+        }
+
+        // Advance Game Stage
+        function nextStage() {
+            if (currentStep < gameStages.length - 1) {
+                currentStep++;
+                renderStage();
+            } else {
+                // Game Completed Screen
+                showCompletionScreen();
+            }
+        }
+
+        // Final Completion Screen
+        function showCompletionScreen() {
+            document.getElementById('story-box').className = "bg-amber-500/20 border border-amber-500/50 rounded-2xl p-6 text-center";
+            document.getElementById('story-text').innerHTML = `
+                <div class="text-center py-4">
+                    <i class="fa-solid fa-trophy text-5xl text-amber-400 mb-3 animate-bounce"></i>
+                    <h2 class="font-game text-2xl text-amber-300 font-bold mb-2">Parabéns! Você Concluiu a Jornada!</h2>
+                    <p class="text-slate-200 text-sm max-w-lg mx-auto">
+                        Agora você compreende a lógica por trás da Razão, do Termo Geral (aₙ) e da Soma dos Termos (Sₙ) de uma Progressão Aritmética!
+                    </p>
+                </div>
+            `;
+
+            document.getElementById('pillars-container').innerHTML = `
+                <div class="w-full text-center py-8">
+                    <div class="inline-block bg-slate-900 border border-indigo-500/40 p-6 rounded-2xl text-left text-xs sm:text-sm space-y-3 max-w-md">
+                        <h4 class="font-game text-amber-400 text-base font-bold text-center border-b border-slate-700 pb-2">Guia Rápido da P.A.</h4>
+                        <p>🔹 Razão (r): r = a₂ - a₁ (o valor somado a cada passo)</p>
+                        <p>🔹 Termo Geral: aₙ = a₁ + (n - 1) · r</p>
+                        <p>🔹 Soma dos n Termos: Sₙ = (a₁ + aₙ) · n / 2</p>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('question-text').innerText = "Quer praticar novamente desde o início?";
+            document.getElementById('interaction-area').innerHTML = `
+                <button onclick="resetGame()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-game font-bold text-lg px-8 py-3 rounded-2xl shadow-xl transition transform hover:scale-105">
+                    <i class="fa-solid fa-rotate-right mr-2"></i> Jogar Novamente
+                </button>
+            `;
+            document.getElementById('feedback-msg').classList.add('hidden');
+        }
+
+        // Reset Game
+        function resetGame() {
+            currentStep = 0;
+            // Restore HTML structure for interaction area if it was modified in completion screen
+            document.getElementById('interaction-area').innerHTML = `
+                <div id="options-grid" class="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full"></div>
+                <div id="input-container" class="hidden flex flex-col sm:flex-row items-center gap-3 w-full max-w-md">
+                    <input type="number" id="user-input" placeholder="Digite o número..." 
+                           class="w-full bg-slate-900 border-2 border-indigo-500 text-white font-game text-center text-xl rounded-xl px-4 py-3 focus:outline-none focus:border-amber-400">
+                    <button id="btn-submit-input" onclick="checkInputAnswer()" 
+                            class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-500 text-white font-game font-bold px-6 py-3 rounded-xl transition shadow-lg flex items-center justify-center gap-2">
+                        <span>Confirmar</span> <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            `;
+            // Re-bind enter event
+            document.getElementById('user-input').addEventListener('keyup', function(event) {
+                if (event.key === 'Enter') {
+                    checkInputAnswer();
+                }
+            });
+            renderStage();
+        }
+
+        // Initialize Game on Load
+        window.onload = function() {
+            renderStage();
+        };
+    </script>
+</body>
+</html>
